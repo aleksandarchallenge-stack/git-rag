@@ -1,0 +1,49 @@
+steps:
+  # 1. Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Build'
+    args: [
+      'build', 
+      '-t', 'europe-west4-docker.pkg.dev/$PROJECT_ID/repo-rag/rag-app:$COMMIT_SHA', 
+      '.'
+    ]
+
+  # 2. Push the image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Push'
+    args: [
+      'push', 
+      'europe-west4-docker.pkg.dev/$PROJECT_ID/repo-rag/rag-app:$COMMIT_SHA'
+    ]
+
+  # 3. Deploy to Cloud Run
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'Deploy'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'rag-app'
+      - '--image'
+      - 'europe-west4-docker.pkg.dev/$PROJECT_ID/repo-rag/rag-app:$COMMIT_SHA'
+      - '--region'
+      - 'europe-west4'
+      # Re-adding the settings you used in your manual command:
+      - '--allow-unauthenticated' 
+      - '--service-account'
+      - 'rag-app-sa@$PROJECT_ID.iam.gserviceaccount.com'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '2'
+      - '--quiet'
+
+images:
+  - 'europe-west4-docker.pkg.dev/$PROJECT_ID/repo-rag/rag-app:$COMMIT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
