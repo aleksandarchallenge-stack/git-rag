@@ -1,0 +1,37 @@
+# .gcloudignore
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Development files
+.git/
+.gitignore
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and temp files
+*.log
+*.tmp
+*.bak
+
+# Local config
+.env
+.env.local
+secrets/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+test/
+tests/
+.coverage
