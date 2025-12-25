@@ -18,3 +18,23 @@ __pycache__/
 
 # Cloud Build / Docker noise
 .gcloud/
+# --- Terraform Ignore Rules ---
+# Local .terraform directories (the drivers)
+**/.terraform/*
+# .tfstate files (the sensitive map)
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude any local variable files that might have passwords
+*.tfvars
+*.tfvars.json
+
+# Ignore override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
