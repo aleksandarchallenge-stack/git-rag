@@ -61,19 +61,35 @@ Level 1
 
 Level 2
 
-12. Bulk export all project resources to terraform.
+12. Bulk export all project resources to terraform. This gave me 40+ resources I deleted most of them.
 13. Keep only the core resources Artifact, BQ, Cloud Run, SA
 14. Create a iam.tr for the IAM roles of the SA
 15. Create import blocks for the core resources Artifact, BQ, Cloud Run, SA
 
-Design decision: 
+Design decision: Manual Terraform
+
+I could conceive of 2 ways to do it.
+First. A Manual set up where terraform is not part of the CI/CD pipeline of Cloud Build. Fast and simple but the configuration is not tracked so it could shift.
+Second. Terraform is part of the CI/CD pipeline in the same repo under another folder. This time using two cloud build triggers that act differently for changes in the /app and /terraform folder. For changes in the latter it would need to run terraform plan and apply.
+Third way might be to do second but use two repos, one for terraform one for the application code. Have two triggers again.
 
 ---
 
 Level 3
 
 16. Cloud Run/Services/Security/IAP edit policy and add the principles to have access.
-17. Add a published_at column to use as a watermark in the release_notes_embeddings table
+
+To keep the KB current we need to schedule a incremental load of the new release_notes. 
+
+From the initial load I stick to using a load job and no chunking, each row is a single document.
+As outlined before if we used BQML and the GENERATED ALWAYS clause we would only need to ingest the new release_notes from the source table with a single MERGE statement that can be a scheduled query. The MERGE statement should use a watermark that would be the max date for the published_at column. 
+
+However, I again went for the approach I used in indexer.py where we directly insert all the rows that are found in the source since the max(published_at) date with WRITE_APPEND, and also do a load job in BQ for every 30 rows. This assumes the data for a given day is loaded in full, and there are no updates to the data once loaded.
+
+A better approach might be to use again a watermark of max(published_at) but combine it with a staging table and a MERGE command. And also accumulate all the records from the embed_documents to have a single load. Benefits of this were already dicussed. 
+
+
+18. Add a published_at column to use as a watermark in the release_notes_embeddings table
     We only load new data after max(published_at). Since published_at is a date this assumes source data is loaded fully for each day.
-18. incr_load.py very similar to the indexer.py but uses the watermark to load only new records.
-19. Create a job on Cloud Run. Use cloud scheduler to make it run every morning.
+19. incr_load.py very similar to the indexer.py but uses the watermark to load only new records.
+20. Create a job on Cloud Run. Use cloud scheduler to make it run every morning.
